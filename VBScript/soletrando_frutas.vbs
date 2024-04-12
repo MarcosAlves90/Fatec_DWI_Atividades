@@ -1,6 +1,6 @@
 Option Explicit
 
-Dim frutas, i, palavraAtual, resposta, repetiu, pulou, acertos, terminou, jogarNovamente
+Dim frutas, i, palavraAtual, resposta, repetiu, pulou, acertos, terminou, jogarNovamente, skip
 frutas = Array("jabuticaba", "graviola", "pitanga", "caju", "acerola", "cupuacu", "carambola", "pitomba", "jatoba", "murici", "guabiju")
 
 MsgBox "Bem-vindo ao jogo SOLETRANDO! Aqui estão as regras:" & vbCrLf & _
@@ -18,31 +18,46 @@ Do
     terminou = False
     i = 0
     palavraAtual = 1
+    skip = False
 
     Do While i <= UBound(frutas)
         If acertos = 10 Then 
             terminou = True
             Exit Do
         End If
-        CreateObject("SAPI.SpVoice").Speak frutas(i)
-        resposta = InputBox("Digite a fruta que foi falada ou 'pular' para pular a palavra ou 'repetir' para repetir a palavra:" & vbCrLf & "Palavra " & palavraAtual & "/" & (UBound(frutas)))
+        If Not skip Then
+            CreateObject("SAPI.SpVoice").Speak frutas(i)
+        End If
+        resposta = LCase(InputBox("Digite a fruta que foi falada ou 'pular' para pular a palavra ou 'repetir' para repetir a palavra:" & vbCrLf & "Palavra " & palavraAtual & "/" & (UBound(frutas))))
 
         If resposta = "" Then
             MsgBox "Você perdeu!"
             Exit Do
-        ElseIf resposta = frutas(i) Then
+        ElseIf resposta = LCase(frutas(i)) Then
             MsgBox "Correto!"
             acertos = acertos + 1
-            pulou = False
             repetiu = False
+            skip = False
             i = i + 1
             palavraAtual = palavraAtual + 1
-        ElseIf resposta = "repetir" And Not repetiu Then
-            repetiu = True
-        ElseIf resposta = "pular" And Not pulou Then
-            pulou = True
-            repetiu = False
-            i = i + 1
+        ElseIf resposta = "repetir" Then
+            If Not repetiu Then
+                repetiu = True
+                skip = False
+            Else
+                MsgBox "Você já repetiu essa palavra!"
+                skip = True
+            End If
+        ElseIf resposta = "pular" Then
+            If Not pulou Then
+                pulou = True
+                repetiu = False
+                skip = False
+                i = i + 1
+            Else
+                MsgBox "Você não pode pular duas vezes!"
+                skip = True
+            End If
         Else
             MsgBox "Incorreto! Você perdeu!"
             Exit Do
